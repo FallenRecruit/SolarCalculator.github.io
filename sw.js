@@ -1,9 +1,10 @@
-const CACHE_NAME = 'solar-calc-v1';
+const CACHE_NAME = 'solar-calc-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/app.js',
-    '/manifest.json'
+    '/manifest.json',
+    '/panels.json'
 ];
 
 // Install service worker and cache files
