@@ -202,6 +202,8 @@ const customGapCheck = document.getElementById('customGapCheck');
 const customGapInput = document.getElementById('customGap');
 const customOverhangCheck = document.getElementById('customOverhangCheck');
 const customOverhangInput = document.getElementById('customOverhang');
+const customRailLengthCheck = document.getElementById('customRailLengthCheck');
+const customRailLengthInput = document.getElementById('customRailLength');
 const panelSelect = document.getElementById('panelSelect');
 
 // Panel select handler for rail calculator
@@ -224,6 +226,7 @@ rackingSelect.addEventListener('change', () => {
     const system = rackingSystems[rackingSelect.value];
     customGapInput.placeholder = `Default: ${system.defaultGap}`;
     customOverhangInput.placeholder = `Default: ${system.defaultOverhang}`;
+    customRailLengthInput.placeholder = `Default: ${system.railLength}`;
 });
 
 // Enable/disable custom inputs
@@ -235,6 +238,11 @@ customGapCheck.addEventListener('change', () => {
 customOverhangCheck.addEventListener('change', () => {
     customOverhangInput.disabled = !customOverhangCheck.checked;
     if (!customOverhangCheck.checked) customOverhangInput.value = '';
+});
+
+customRailLengthCheck.addEventListener('change', () => {
+    customRailLengthInput.disabled = !customRailLengthCheck.checked;
+    if (!customRailLengthCheck.checked) customRailLengthInput.value = '';
 });
 
 // Calculate rail length
@@ -261,6 +269,10 @@ document.getElementById('calcRailBtn').addEventListener('click', () => {
         ? parseFloat(customOverhangInput.value) 
         : system.defaultOverhang;
 
+    const railStockLength = customRailLengthCheck.checked && customRailLengthInput.value
+        ? parseFloat(customRailLengthInput.value)
+        : system.railLength;
+
     // Calculate for one rail
     const totalPanelWidth = panelCount * panelWidth;
     const totalGaps = (panelCount - 1) * gap;
@@ -272,7 +284,7 @@ document.getElementById('calcRailBtn').addEventListener('click', () => {
     const totalRailLengthNeeded = singleRailLength * railsPerRowLength * rowCount;
 
     // Calculate number of stock rails needed
-    const stockRailsPerSingleRail = Math.ceil(singleRailLength / system.railLength);
+    const stockRailsPerSingleRail = Math.ceil(singleRailLength / railStockLength);
     const totalStockRails = stockRailsPerSingleRail * railsPerRowLength * rowCount;
     
     // Splices per single rail run
@@ -280,14 +292,14 @@ document.getElementById('calcRailBtn').addEventListener('click', () => {
     const totalSplices = splicesPerRail * railsPerRowLength * rowCount;
 
     // Waste
-    const totalStockLength = totalStockRails * system.railLength;
-    const waste = totalStockLength - totalRailLengthNeeded;
+    const totalStockLengthUsed = totalStockRails * railStockLength;
+    const waste = totalStockLengthUsed - totalRailLengthNeeded;
 
     // Display results
     document.getElementById('totalLength').textContent = 
         `${(totalRailLengthNeeded / 1000).toFixed(2)}m (${totalRailLengthNeeded.toFixed(0)}mm)`;
     document.getElementById('railsNeeded').textContent = 
-        `${totalStockRails} × ${system.railLength / 1000}m`;
+        `${totalStockRails} × ${railStockLength / 1000}m`;
     document.getElementById('splicesNeeded').textContent = totalSplices;
     document.getElementById('wasteLength').textContent = 
         `${(waste / 1000).toFixed(2)}m`;
@@ -297,6 +309,7 @@ document.getElementById('calcRailBtn').addEventListener('click', () => {
     breakdown += `  Gaps: ${panelCount - 1} × ${gap}mm = ${totalGaps}mm\n`;
     breakdown += `  Overhangs: 2 × ${overhang}mm = ${totalOverhang}mm\n`;
     breakdown += `  Rail length: ${singleRailLength}mm (${(singleRailLength/1000).toFixed(2)}m)\n\n`;
+    breakdown += `Stock rail: ${railStockLength}mm (${(railStockLength/1000).toFixed(2)}m)\n`;
     breakdown += `Total: ${rowCount} row${rowCount > 1 ? 's' : ''} × 2 rails = ${railsPerRowLength * rowCount} rail runs`;
 
     document.getElementById('railBreakdown').textContent = breakdown;
