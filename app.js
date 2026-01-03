@@ -41,24 +41,51 @@ const rackingSystems = {
 // Default panels (loaded from panels.json or localStorage)
 let panelsDatabase = [];
 
-// Load panels from localStorage or fetch default
+// Load panels from localStorage and merge with server panels.json
 async function loadPanels() {
-    // First check localStorage for user's panels
+    let localPanels = [];
+    let serverPanels = [];
+    
+    // Load from localStorage
     const stored = localStorage.getItem('solarCalcPanels');
     if (stored) {
-        panelsDatabase = JSON.parse(stored);
-    } else {
-        // Load defaults from panels.json
         try {
-            const response = await fetch('panels.json');
-            const data = await response.json();
-            panelsDatabase = data.panels;
-            savePanels();
+            localPanels = JSON.parse(stored);
         } catch (e) {
-            console.log('Could not load panels.json, using empty database');
-            panelsDatabase = [];
+            console.log('Error parsing local panels:', e);
+            localPanels = [];
         }
     }
+    
+    // Fetch server panels.json
+    try {
+        const response = await fetch('panels.json');
+        const data = await response.json();
+        serverPanels = data.panels || [];
+    } catch (e) {
+        console.log('Could not load panels.json:', e);
+        serverPanels = [];
+    }
+    
+    // Merge: server panels + local-only panels
+    // Local panels with same ID take priority (user may have edited)
+    const localIds = new Set(localPanels.map(p => p.id));
+    const serverIds = new Set(serverPanels.map(p => p.id));
+    
+    // Start with all local panels
+    panelsDatabase = [...localPanels];
+    
+    // Add any server panels that don't exist locally (new panels)
+    for (const serverPanel of serverPanels) {
+        if (!localIds.has(serverPanel.id)) {
+            panelsDatabase.push(serverPanel);
+            console.log('Added new panel from server:', serverPanel.id);
+        }
+    }
+    
+    // Save merged result
+    savePanels();
+    
     populatePanelSelects();
     renderPanelList();
 }
