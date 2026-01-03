@@ -3,19 +3,19 @@ const rackingSystems = {
     'hopergy': {
         name: 'Hopergy',
         defaultGap: 20,
-        defaultOverhang: 25,
-        railLength: 4400
+        defaultOverhang: 70,
+        railLength: 4800
     },
     'clenergy': {
         name: 'Clenergy',
         defaultGap: 18,
-        defaultOverhang: 20,
-        railLength: 3600
+        defaultOverhang: 70,
+        railLength: 4700
     },
     'clenergy-universal': {
         name: 'Clenergy (Universal)',
         defaultGap: 20,
-        defaultOverhang: 20,
+        defaultOverhang: 70,
         railLength: 3600
     },
     'schletter-proline': {
@@ -33,8 +33,8 @@ const rackingSystems = {
     'custom': {
         name: 'Custom',
         defaultGap: 20,
-        defaultOverhang: 25,
-        railLength: 4400
+        defaultOverhang: 70,
+        railLength: 4800
     }
 };
 
