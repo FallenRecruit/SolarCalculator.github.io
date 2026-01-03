@@ -226,7 +226,9 @@
             margin-bottom: 6px;
         }
 
-        input, select {
+        input[type="text"],
+        input[type="number"],
+        select {
             width: 100%;
             padding: 14px;
             border: 1px solid var(--border);
@@ -236,7 +238,9 @@
             -webkit-appearance: none;
         }
 
-        input:focus, select:focus {
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
             outline: none;
             border-color: var(--primary);
         }
@@ -256,14 +260,20 @@
         }
 
         .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-appearance: checkbox;
+            -moz-appearance: checkbox;
+            appearance: checkbox;
         }
 
         .checkbox-group label {
             margin: 0;
             color: var(--text);
+            cursor: pointer;
         }
 
         .btn-calculate {
