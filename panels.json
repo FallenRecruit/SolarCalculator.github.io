@@ -8,12 +8,12 @@
       "width": 1134,
       "height": 1762,
       "depth": 30,
-      "voc": 41.10,
-      "vmp": 34.50,
-      "isc": 15.00,
-      "imp": 14.35,
-      "tempCoeffVoc": -0.26,
-      "weight": 21.0
+      "voc": 41.20,
+      "vmp": 34.80,
+      "isc": 14.92,
+      "imp": 14.23,
+      "tempCoeffVoc": -0.22,
+      "weight": 21.1
     },
     {
       "id": "rec-460aa-pure-rx",
@@ -23,7 +23,7 @@
       "width": 1205,
       "height": 1728,
       "depth": 30,
-      "voc": 65.30,
+      "voc": 65.70,
       "vmp": 54.90,
       "isc": 8.88,
       "imp": 8.38,
@@ -36,14 +36,14 @@
       "model": "A475-MAH54MW Neostar 2P",
       "wattage": 475,
       "width": 1134,
-      "height": 1722,
+      "height": 1757,
       "depth": 30,
       "voc": 41.24,
       "vmp": 34.80,
       "isc": 14.35,
       "imp": 13.66,
-      "tempCoeffVoc": -0.26,
-      "weight": 21.5
+      "tempCoeffVoc": -0.22,
+      "weight": 20.6
     },
     {
       "id": "longi-lr7-54hvh-475m",
@@ -57,7 +57,7 @@
       "vmp": 33.16,
       "isc": 15.03,
       "imp": 14.33,
-      "tempCoeffVoc": -0.26,
+      "tempCoeffVoc": -0.20,
       "weight": 21.6
     }
   ],
