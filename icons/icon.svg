@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#1976D2"/>
+  <g fill="#FFFFFF">
+    <!-- Solar panel grid -->
+    <rect x="80" y="120" width="140" height="100" rx="8" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+    <line x1="80" y1="153" x2="220" y2="153" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="80" y1="186" x2="220" y2="186" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="127" y1="120" x2="127" y2="220" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="173" y1="120" x2="173" y2="220" stroke="#FFFFFF" stroke-width="4"/>
+    
+    <!-- Second panel -->
+    <rect x="240" y="120" width="140" height="100" rx="8" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+    <line x1="240" y1="153" x2="380" y2="153" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="240" y1="186" x2="380" y2="186" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="287" y1="120" x2="287" y2="220" stroke="#FFFFFF" stroke-width="4"/>
+    <line x1="333" y1="120" x2="333" y2="220" stroke="#FFFFFF" stroke-width="4"/>
+    
+    <!-- Rail underneath -->
+    <rect x="60" y="240" width="340" height="20" rx="4" fill="#FFFFFF"/>
+    
+    <!-- Calculator elements -->
+    <rect x="100" y="300" width="260" height="140" rx="12" fill="#FFFFFF" opacity="0.9"/>
+    <text x="230" y="355" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#1976D2" text-anchor="middle">1234</text>
+    <text x="230" y="410" font-family="Arial, sans-serif" font-size="24" fill="#666666" text-anchor="middle">mm</text>
+  </g>
+</svg>

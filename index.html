@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1976D2">
+    <meta name="description" content="Solar panel installation calculator for rail lengths, clamps, and more">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Solar Calc">
+    
+    <title>Solar Calculator</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #1976D2;
+            --primary-dark: #1565C0;
+            --success: #388E3C;
+            --warning: #F57C00;
+            --purple: #7B1FA2;
+            --bg: #F5F5F5;
+            --card: #FFFFFF;
+            --text: #212121;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 12px;
+            display: none;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
+
+        main {
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Home Screen */
+        .calculator-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .calc-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--card);
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .calc-btn:active {
+            transform: scale(0.98);
+        }
+
+        .calc-btn .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .calc-btn .text h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .calc-btn .text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .icon-rail { background: var(--primary); }
+        .icon-clamp { background: var(--success); }
+        .icon-cable { background: var(--warning); }
+        .icon-string { background: var(--purple); }
+
+        /* Calculator Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--card);
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            color: var(--text);
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-calculate:active {
+            background: var(--primary-dark);
+        }
+
+        .results {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-row .label {
+            color: var(--text-secondary);
+        }
+
+        .result-row .value {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .result-row.highlight {
+            background: #E3F2FD;
+            margin: 0 -20px;
+            padding: 12px 20px;
+        }
+
+        .breakdown {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .breakdown h4 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .breakdown pre {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+
+        /* Quick presets */
+        .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: #E3F2FD;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .preset-btn:active {
+            background: #BBDEFB;
+        }
+
+        /* Input with unit */
+        .input-with-unit {
+            position: relative;
+        }
+
+        .input-with-unit input {
+            padding-right: 50px;
+        }
+
+        .input-with-unit .unit {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Rows section */
+        .rows-section {
+            background: #FFF8E1;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .rows-section h4 {
+            font-size: 14px;
+            color: var(--warning);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <button class="back-btn" id="backBtn">←</button>
+            <h1 id="headerTitle">Solar Calculator</h1>
+        </div>
+    </header>
+
+    <main>
+        <!-- Home Screen -->
+        <div class="screen active" id="homeScreen">
+            <div class="calculator-grid">
+                <button class="calc-btn" data-screen="railLength">
+                    <div class="icon icon-rail">📏</div>
+                    <div class="text">
+                        <h3>Rail Length</h3>
+                        <p>Calculate rail requirements for panel rows</p>
+                    </div>
+                </button>
+
+                <button class="calc-btn" data-screen="clampCount">
+                    <div class="icon icon-clamp">🔩</div>
+                    <div class="text">
+                        <h3>Clamp Count</h3>
+                        <p>Mid clamps, end clamps, and brackets</p>
+                    </div>
+                </button>
+
+                <button class="calc-btn" data-screen="cableLength">
+                    <div class="icon icon-cable">🔌</div>
+                    <div class="text">
+                        <h3>DC Cable Length</h3>
+                        <p>String cable runs to inverter</p>
+                    </div>
+                </button>
+
+                <button class="calc-btn" data-screen="stringSize">
+                    <div class="icon icon-string">⚡</div>
+                    <div class="text">
+                        <h3>String Calculator</h3>
+                        <p>Max panels per string for inverter</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Rail Length Calculator -->
+        <div class="screen" id="railLengthScreen">
+            <div class="form-group">
+                <label>Racking System</label>
+                <select id="rackingSystem">
+                    <option value="hopergy">Hopergy</option>
+                    <option value="clenergy">Clenergy</option>
+                    <option value="clenergy-universal">Clenergy (Universal Clamps)</option>
+                    <option value="schletter-proline">Schletter ProLine</option>
+                    <option value="schletter-classic">Schletter Classic</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Common Panel Widths</label>
+                <div class="presets">
+                    <button class="preset-btn" data-width="1134">1134mm</button>
+                    <button class="preset-btn" data-width="1303">1303mm</button>
+                    <button class="preset-btn" data-width="1278">1278mm</button>
+                    <button class="preset-btn" data-width="1172">1172mm</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Panel Width</label>
+                <div class="input-with-unit">
+                    <input type="number" id="panelWidth" placeholder="e.g. 1134" inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Panels per Row</label>
+                <input type="number" id="panelCount" placeholder="e.g. 6" inputmode="numeric">
+            </div>
+
+            <div class="rows-section">
+                <h4>Multiple Rows (Optional)</h4>
+                <div class="form-group">
+                    <label>Number of Rows</label>
+                    <input type="number" id="rowCount" placeholder="1" value="1" inputmode="numeric">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="customGapCheck">
+                    <label for="customGapCheck">Custom panel gap</label>
+                </div>
+                <div class="input-with-unit">
+                    <input type="number" id="customGap" placeholder="Default: 20" disabled inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="customOverhangCheck">
+                    <label for="customOverhangCheck">Custom end overhang</label>
+                </div>
+                <div class="input-with-unit">
+                    <input type="number" id="customOverhang" placeholder="Default: 25" disabled inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <button class="btn-calculate" id="calcRailBtn">Calculate</button>
+
+            <div class="results" id="railResults">
+                <h3>Results</h3>
+                <div class="result-row highlight">
+                    <span class="label">Total Rail Length</span>
+                    <span class="value" id="totalLength">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Rails Needed</span>
+                    <span class="value" id="railsNeeded">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Splices/Joiners</span>
+                    <span class="value" id="splicesNeeded">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Waste/Offcut</span>
+                    <span class="value" id="wasteLength">-</span>
+                </div>
+                <div class="breakdown">
+                    <h4>Breakdown</h4>
+                    <pre id="railBreakdown"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clamp Count Calculator -->
+        <div class="screen" id="clampCountScreen">
+            <div class="form-group">
+                <label>Panels per Row</label>
+                <input type="number" id="clampPanelCount" placeholder="e.g. 6" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+                <label>Number of Rows</label>
+                <input type="number" id="clampRowCount" placeholder="e.g. 2" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+                <label>Roof Attachment Spacing</label>
+                <div class="input-with-unit">
+                    <input type="number" id="bracketSpacing" placeholder="e.g. 1200" value="1200" inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Rail Length per Row</label>
+                <div class="input-with-unit">
+                    <input type="number" id="clampRailLength" placeholder="From rail calc" inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <button class="btn-calculate" id="calcClampBtn">Calculate</button>
+
+            <div class="results" id="clampResults">
+                <h3>Results</h3>
+                <div class="result-row highlight">
+                    <span class="label">End Clamps</span>
+                    <span class="value" id="endClamps">-</span>
+                </div>
+                <div class="result-row highlight">
+                    <span class="label">Mid Clamps</span>
+                    <span class="value" id="midClamps">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Total Clamps</span>
+                    <span class="value" id="totalClamps">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Roof Brackets (per rail)</span>
+                    <span class="value" id="bracketsPerRail">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Total Roof Brackets</span>
+                    <span class="value" id="totalBrackets">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DC Cable Length Calculator -->
+        <div class="screen" id="cableLengthScreen">
+            <div class="form-group">
+                <label>Panel Height (short side)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="panelHeight" placeholder="e.g. 1722" inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Panels in String</label>
+                <input type="number" id="cablePanelCount" placeholder="e.g. 12" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+                <label>Distance: Last Panel to Inverter</label>
+                <div class="input-with-unit">
+                    <input type="number" id="inverterDistance" placeholder="e.g. 8000" inputmode="decimal">
+                    <span class="unit">mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Number of Strings</label>
+                <input type="number" id="stringCount" placeholder="e.g. 2" value="1" inputmode="numeric">
+            </div>
+
+            <button class="btn-calculate" id="calcCableBtn">Calculate</button>
+
+            <div class="results" id="cableResults">
+                <h3>Results</h3>
+                <div class="result-row">
+                    <span class="label">Cable per String (+ &amp; -)</span>
+                    <span class="value" id="cablePerString">-</span>
+                </div>
+                <div class="result-row highlight">
+                    <span class="label">Total DC Cable</span>
+                    <span class="value" id="totalCable">-</span>
+                </div>
+                <div class="breakdown">
+                    <h4>Note</h4>
+                    <pre>Includes 10% extra for routing and terminations</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- String Size Calculator -->
+        <div class="screen" id="stringSizeScreen">
+            <div class="form-group">
+                <label>Panel Voc (Open Circuit Voltage)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="panelVoc" placeholder="e.g. 37.5" inputmode="decimal" step="0.1">
+                    <span class="unit">V</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Panel Vmp (Max Power Voltage)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="panelVmp" placeholder="e.g. 31.2" inputmode="decimal" step="0.1">
+                    <span class="unit">V</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Inverter Max DC Voltage</label>
+                <div class="input-with-unit">
+                    <input type="number" id="inverterMaxV" placeholder="e.g. 600" inputmode="decimal">
+                    <span class="unit">V</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Inverter MPPT Range (Min)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="mpptMin" placeholder="e.g. 150" inputmode="decimal">
+                    <span class="unit">V</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Inverter MPPT Range (Max)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="mpptMax" placeholder="e.g. 500" inputmode="decimal">
+                    <span class="unit">V</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Temperature Coefficient of Voc</label>
+                <div class="input-with-unit">
+                    <input type="number" id="tempCoeff" placeholder="e.g. -0.29" inputmode="decimal" step="0.01" value="-0.29">
+                    <span class="unit">%/°C</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Minimum Expected Temperature</label>
+                <div class="input-with-unit">
+                    <input type="number" id="minTemp" placeholder="e.g. -5" inputmode="decimal" value="0">
+                    <span class="unit">°C</span>
+                </div>
+            </div>
+
+            <button class="btn-calculate" id="calcStringBtn">Calculate</button>
+
+            <div class="results" id="stringResults">
+                <h3>Results</h3>
+                <div class="result-row highlight">
+                    <span class="label">Max Panels per String</span>
+                    <span class="value" id="maxPanels">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Min Panels per String</span>
+                    <span class="value" id="minPanels">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="label">Cold Weather Voc (adjusted)</span>
+                    <span class="value" id="adjustedVoc">-</span>
+                </div>
+                <div class="breakdown">
+                    <h4>String Voltage Range</h4>
+                    <pre id="stringBreakdown"></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
