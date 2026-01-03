@@ -128,6 +128,83 @@
         .icon-clamp { background: var(--success); }
         .icon-cable { background: var(--warning); }
         .icon-string { background: var(--purple); }
+        .icon-panels { background: #607D8B; }
+
+        /* Panel info display */
+        .panel-info {
+            background: #E3F2FD;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--primary-dark);
+        }
+
+        /* Panel list */
+        .panel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .panel-card {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .panel-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .panel-card h4 {
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .panel-card .wattage {
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .panel-card .specs {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+
+        .panel-card .delete-btn {
+            background: none;
+            border: none;
+            color: #f44336;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            margin-left: 8px;
+        }
+
+        .form-row {
+            display: flex;
+        }
+
+        /* Add panel form */
+        .add-panel-form {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
 
         /* Calculator Screens */
         .screen {
@@ -369,11 +446,30 @@
                         <p>Max panels per string for inverter</p>
                     </div>
                 </button>
+
+                <button class="calc-btn" data-screen="panelManager">
+                    <div class="icon icon-panels">📋</div>
+                    <div class="text">
+                        <h3>Panel Database</h3>
+                        <p>View and add panel specifications</p>
+                    </div>
+                </button>
             </div>
         </div>
 
         <!-- Rail Length Calculator -->
         <div class="screen" id="railLengthScreen">
+            <div class="form-group">
+                <label>Select Panel</label>
+                <select id="panelSelect">
+                    <option value="">-- Select a panel --</option>
+                </select>
+            </div>
+
+            <div class="panel-info" id="panelInfo" style="display: none;">
+                <span id="panelInfoText"></span>
+            </div>
+
             <div class="form-group">
                 <label>Racking System</label>
                 <select id="rackingSystem">
@@ -384,16 +480,6 @@
                     <option value="schletter-classic">Schletter Classic</option>
                     <option value="custom">Custom</option>
                 </select>
-            </div>
-
-            <div class="form-group">
-                <label>Common Panel Widths</label>
-                <div class="presets">
-                    <button class="preset-btn" data-width="1134">1134mm</button>
-                    <button class="preset-btn" data-width="1303">1303mm</button>
-                    <button class="preset-btn" data-width="1278">1278mm</button>
-                    <button class="preset-btn" data-width="1172">1172mm</button>
-                </div>
             </div>
 
             <div class="form-group">
@@ -524,6 +610,13 @@
         <!-- DC Cable Length Calculator -->
         <div class="screen" id="cableLengthScreen">
             <div class="form-group">
+                <label>Select Panel</label>
+                <select id="cablePanelSelect">
+                    <option value="">-- Select a panel --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label>Panel Height (short side)</label>
                 <div class="input-with-unit">
                     <input type="number" id="panelHeight" placeholder="e.g. 1722" inputmode="decimal">
@@ -570,6 +663,17 @@
 
         <!-- String Size Calculator -->
         <div class="screen" id="stringSizeScreen">
+            <div class="form-group">
+                <label>Select Panel</label>
+                <select id="stringPanelSelect">
+                    <option value="">-- Select a panel --</option>
+                </select>
+            </div>
+
+            <div class="panel-info" id="stringPanelInfo" style="display: none;">
+                <span id="stringPanelInfoText"></span>
+            </div>
+
             <div class="form-group">
                 <label>Panel Voc (Open Circuit Voltage)</label>
                 <div class="input-with-unit">
@@ -645,6 +749,106 @@
                 <div class="breakdown">
                     <h4>String Voltage Range</h4>
                     <pre id="stringBreakdown"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Manager Screen -->
+        <div class="screen" id="panelManagerScreen">
+            <div class="panel-list" id="panelList">
+                <!-- Panels will be loaded here -->
+            </div>
+
+            <button class="btn-calculate" id="addPanelBtn" style="background: #388E3C; margin-top: 20px;">
+                + Add New Panel
+            </button>
+
+            <!-- Add Panel Form (hidden by default) -->
+            <div class="add-panel-form" id="addPanelForm" style="display: none;">
+                <h3 style="margin: 20px 0 16px; color: var(--primary);">Add New Panel</h3>
+                
+                <div class="form-group">
+                    <label>Manufacturer</label>
+                    <input type="text" id="newManufacturer" placeholder="e.g. Jinko">
+                </div>
+
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" id="newModel" placeholder="e.g. Tiger Neo 450W">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Wattage</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newWattage" placeholder="450" inputmode="numeric">
+                            <span class="unit">W</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1; margin-right: 8px;">
+                        <label>Width</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newWidth" placeholder="1134" inputmode="numeric">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Height</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newHeight" placeholder="1762" inputmode="numeric">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1; margin-right: 8px;">
+                        <label>Voc</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newVoc" placeholder="41.5" inputmode="decimal" step="0.1">
+                            <span class="unit">V</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Vmp</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newVmp" placeholder="34.6" inputmode="decimal" step="0.1">
+                            <span class="unit">V</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1; margin-right: 8px;">
+                        <label>Isc</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newIsc" placeholder="13.9" inputmode="decimal" step="0.1">
+                            <span class="unit">A</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Imp</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="newImp" placeholder="13.0" inputmode="decimal" step="0.1">
+                            <span class="unit">A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Temp Coefficient Voc</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="newTempCoeff" placeholder="-0.26" inputmode="decimal" step="0.01" value="-0.26">
+                        <span class="unit">%/°C</span>
+                    </div>
+                </div>
+
+                <div class="form-row" style="gap: 8px; margin-top: 16px;">
+                    <button class="btn-calculate" id="savePanelBtn" style="flex: 1;">Save Panel</button>
+                    <button class="btn-calculate" id="cancelPanelBtn" style="flex: 1; background: #666;">Cancel</button>
                 </div>
             </div>
         </div>
