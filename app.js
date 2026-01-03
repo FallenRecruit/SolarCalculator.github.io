@@ -38,6 +38,123 @@ const rackingSystems = {
     }
 };
 
+// Default panels (loaded from panels.json or localStorage)
+let panelsDatabase = [];
+
+// Load panels from localStorage or fetch default
+async function loadPanels() {
+    // First check localStorage for user's panels
+    const stored = localStorage.getItem('solarCalcPanels');
+    if (stored) {
+        panelsDatabase = JSON.parse(stored);
+    } else {
+        // Load defaults from panels.json
+        try {
+            const response = await fetch('panels.json');
+            const data = await response.json();
+            panelsDatabase = data.panels;
+            savePanels();
+        } catch (e) {
+            console.log('Could not load panels.json, using empty database');
+            panelsDatabase = [];
+        }
+    }
+    populatePanelSelects();
+    renderPanelList();
+}
+
+// Save panels to localStorage
+function savePanels() {
+    localStorage.setItem('solarCalcPanels', JSON.stringify(panelsDatabase));
+}
+
+// Populate all panel select dropdowns
+function populatePanelSelects() {
+    const selects = ['panelSelect', 'stringPanelSelect', 'cablePanelSelect'];
+    
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        // Clear existing options except first
+        select.innerHTML = '<option value="">-- Select a panel --</option>';
+        
+        // Group by manufacturer
+        const grouped = {};
+        panelsDatabase.forEach(panel => {
+            if (!grouped[panel.manufacturer]) {
+                grouped[panel.manufacturer] = [];
+            }
+            grouped[panel.manufacturer].push(panel);
+        });
+        
+        // Add optgroups
+        Object.keys(grouped).sort().forEach(manufacturer => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = manufacturer;
+            
+            grouped[manufacturer].forEach(panel => {
+                const option = document.createElement('option');
+                option.value = panel.id;
+                option.textContent = `${panel.model} (${panel.wattage}W)`;
+                optgroup.appendChild(option);
+            });
+            
+            select.appendChild(optgroup);
+        });
+    });
+}
+
+// Render panel list in manager
+function renderPanelList() {
+    const list = document.getElementById('panelList');
+    if (!list) return;
+    
+    if (panelsDatabase.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No panels added yet</p>';
+        return;
+    }
+    
+    list.innerHTML = panelsDatabase.map(panel => `
+        <div class="panel-card" data-id="${panel.id}">
+            <div class="panel-card-header">
+                <div>
+                    <h4>${panel.manufacturer} ${panel.model}</h4>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span class="wattage">${panel.wattage}W</span>
+                    <button class="delete-btn" data-id="${panel.id}">×</button>
+                </div>
+            </div>
+            <div class="specs">
+                <span>Size: ${panel.width} × ${panel.height}mm</span>
+                <span>Voc: ${panel.voc}V</span>
+                <span>Vmp: ${panel.vmp}V</span>
+                <span>Isc: ${panel.isc}A</span>
+            </div>
+        </div>
+    `).join('');
+    
+    // Add delete handlers
+    list.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            if (confirm('Delete this panel?')) {
+                panelsDatabase = panelsDatabase.filter(p => p.id !== id);
+                savePanels();
+                populatePanelSelects();
+                renderPanelList();
+            }
+        });
+    });
+}
+
+// Get panel by ID
+function getPanelById(id) {
+    return panelsDatabase.find(p => p.id === id);
+}
+
 // Navigation
 const screens = document.querySelectorAll('.screen');
 const backBtn = document.getElementById('backBtn');
@@ -64,13 +181,17 @@ document.querySelectorAll('.calc-btn').forEach(btn => {
             'railLength': 'Rail Length',
             'clampCount': 'Clamp Count',
             'cableLength': 'DC Cable Length',
-            'stringSize': 'String Calculator'
+            'stringSize': 'String Calculator',
+            'panelManager': 'Panel Database'
         };
         showScreen(screen + 'Screen', titles[screen]);
     });
 });
 
 backBtn.addEventListener('click', () => showScreen('homeScreen'));
+
+// Initialize panels on load
+loadPanels();
 
 // Rail Length Calculator
 const rackingSelect = document.getElementById('rackingSystem');
@@ -81,6 +202,22 @@ const customGapCheck = document.getElementById('customGapCheck');
 const customGapInput = document.getElementById('customGap');
 const customOverhangCheck = document.getElementById('customOverhangCheck');
 const customOverhangInput = document.getElementById('customOverhang');
+const panelSelect = document.getElementById('panelSelect');
+
+// Panel select handler for rail calculator
+panelSelect.addEventListener('change', () => {
+    const panel = getPanelById(panelSelect.value);
+    const panelInfo = document.getElementById('panelInfo');
+    const panelInfoText = document.getElementById('panelInfoText');
+    
+    if (panel) {
+        panelWidthInput.value = panel.width;
+        panelInfo.style.display = 'block';
+        panelInfoText.textContent = `${panel.manufacturer} ${panel.model}: ${panel.width}×${panel.height}mm, ${panel.wattage}W`;
+    } else {
+        panelInfo.style.display = 'none';
+    }
+});
 
 // Update placeholders when racking system changes
 rackingSelect.addEventListener('change', () => {
@@ -98,13 +235,6 @@ customGapCheck.addEventListener('change', () => {
 customOverhangCheck.addEventListener('change', () => {
     customOverhangInput.disabled = !customOverhangCheck.checked;
     if (!customOverhangCheck.checked) customOverhangInput.value = '';
-});
-
-// Panel width presets
-document.querySelectorAll('.preset-btn[data-width]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        panelWidthInput.value = btn.dataset.width;
-    });
 });
 
 // Calculate rail length
@@ -224,6 +354,13 @@ document.getElementById('calcClampBtn').addEventListener('click', () => {
 });
 
 // DC Cable Length Calculator
+document.getElementById('cablePanelSelect').addEventListener('change', (e) => {
+    const panel = getPanelById(e.target.value);
+    if (panel) {
+        document.getElementById('panelHeight').value = panel.height;
+    }
+});
+
 document.getElementById('calcCableBtn').addEventListener('click', () => {
     const panelHeight = parseFloat(document.getElementById('panelHeight').value);
     const panelCount = parseInt(document.getElementById('cablePanelCount').value);
@@ -252,6 +389,22 @@ document.getElementById('calcCableBtn').addEventListener('click', () => {
 });
 
 // String Size Calculator
+document.getElementById('stringPanelSelect').addEventListener('change', (e) => {
+    const panel = getPanelById(e.target.value);
+    const panelInfo = document.getElementById('stringPanelInfo');
+    const panelInfoText = document.getElementById('stringPanelInfoText');
+    
+    if (panel) {
+        document.getElementById('panelVoc').value = panel.voc;
+        document.getElementById('panelVmp').value = panel.vmp;
+        document.getElementById('tempCoeff').value = panel.tempCoeffVoc;
+        panelInfo.style.display = 'block';
+        panelInfoText.textContent = `${panel.manufacturer} ${panel.model}: Voc ${panel.voc}V, Vmp ${panel.vmp}V`;
+    } else {
+        panelInfo.style.display = 'none';
+    }
+});
+
 document.getElementById('calcStringBtn').addEventListener('click', () => {
     const panelVoc = parseFloat(document.getElementById('panelVoc').value);
     const panelVmp = parseFloat(document.getElementById('panelVmp').value);
@@ -307,3 +460,98 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('SW registration failed:', err));
     });
 }
+
+// Panel Manager
+const addPanelBtn = document.getElementById('addPanelBtn');
+const addPanelForm = document.getElementById('addPanelForm');
+const savePanelBtn = document.getElementById('savePanelBtn');
+const cancelPanelBtn = document.getElementById('cancelPanelBtn');
+
+addPanelBtn.addEventListener('click', () => {
+    addPanelForm.style.display = 'block';
+    addPanelBtn.style.display = 'none';
+});
+
+cancelPanelBtn.addEventListener('click', () => {
+    addPanelForm.style.display = 'none';
+    addPanelBtn.style.display = 'block';
+    clearPanelForm();
+});
+
+function clearPanelForm() {
+    document.getElementById('newManufacturer').value = '';
+    document.getElementById('newModel').value = '';
+    document.getElementById('newWattage').value = '';
+    document.getElementById('newWidth').value = '';
+    document.getElementById('newHeight').value = '';
+    document.getElementById('newVoc').value = '';
+    document.getElementById('newVmp').value = '';
+    document.getElementById('newIsc').value = '';
+    document.getElementById('newImp').value = '';
+    document.getElementById('newTempCoeff').value = '-0.26';
+}
+
+savePanelBtn.addEventListener('click', () => {
+    const manufacturer = document.getElementById('newManufacturer').value.trim();
+    const model = document.getElementById('newModel').value.trim();
+    const wattage = parseInt(document.getElementById('newWattage').value);
+    const width = parseInt(document.getElementById('newWidth').value);
+    const height = parseInt(document.getElementById('newHeight').value);
+    const voc = parseFloat(document.getElementById('newVoc').value);
+    const vmp = parseFloat(document.getElementById('newVmp').value);
+    const isc = parseFloat(document.getElementById('newIsc').value);
+    const imp = parseFloat(document.getElementById('newImp').value);
+    const tempCoeff = parseFloat(document.getElementById('newTempCoeff').value);
+    
+    // Validation
+    if (!manufacturer || !model) {
+        alert('Please enter manufacturer and model');
+        return;
+    }
+    if (!wattage || !width || !height) {
+        alert('Please enter wattage and dimensions');
+        return;
+    }
+    if (!voc || !vmp) {
+        alert('Please enter Voc and Vmp');
+        return;
+    }
+    
+    // Generate ID
+    const id = `${manufacturer.toLowerCase().replace(/\s+/g, '-')}-${model.toLowerCase().replace(/\s+/g, '-')}`;
+    
+    // Check for duplicate
+    if (panelsDatabase.find(p => p.id === id)) {
+        alert('A panel with this manufacturer and model already exists');
+        return;
+    }
+    
+    // Add panel
+    const newPanel = {
+        id,
+        manufacturer,
+        model,
+        wattage,
+        width,
+        height,
+        depth: 30,
+        voc,
+        vmp,
+        isc: isc || 0,
+        imp: imp || 0,
+        tempCoeffVoc: tempCoeff || -0.26,
+        weight: 0
+    };
+    
+    panelsDatabase.push(newPanel);
+    savePanels();
+    populatePanelSelects();
+    renderPanelList();
+    
+    // Reset form
+    addPanelForm.style.display = 'none';
+    addPanelBtn.style.display = 'block';
+    clearPanelForm();
+    
+    alert('Panel added successfully!');
+});
